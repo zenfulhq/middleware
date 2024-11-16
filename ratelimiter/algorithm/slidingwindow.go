@@ -25,7 +25,12 @@ func NewSlidingWindow(
 	period time.Duration,
 	client *redis.Client,
 ) (*SlidingWindow, error) {
-	script, err := os.ReadFile("./slidingwindow.lua")
+	scriptDir, exists := os.LookupEnv("SCRIPT_DIR")
+	if !exists {
+		scriptDir = "."
+	}
+
+	script, err := os.ReadFile(fmt.Sprintf("%s/slidingwindow.lua", scriptDir))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load script: %w", err)
 	}
