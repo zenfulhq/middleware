@@ -4,13 +4,11 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
-
-//go:embed slidingwindow.lua
-var script string
 
 type SlidingWindow struct {
 	// Algorithm Configuration
@@ -27,6 +25,11 @@ func NewSlidingWindow(
 	period time.Duration,
 	client *redis.Client,
 ) (*SlidingWindow, error) {
+	script, err := os.ReadFile("./slidingwindow.lua")
+	if err != nil {
+		return nil, fmt.Errorf("failed to load script: %w", err)
+	}
+
 	return &SlidingWindow{
 		period: period,
 		limit:  limit,

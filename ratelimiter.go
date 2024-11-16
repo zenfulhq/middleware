@@ -4,6 +4,9 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
+
+	"github.com/zenfulhq/middleware/ratelimiter/algorithm"
 )
 
 type Algorithm interface {
@@ -15,11 +18,16 @@ type RateLimiter struct {
 	logger *slog.Logger
 }
 
-func NewRateLimiter(algo Algorithm, logger *slog.Logger) *RateLimiter {
-	return &RateLimiter{
-		algo:   algo,
-		logger: logger,
+func NewRateLimiter(limit int64, period time.Duration) (*RateLimiter, error) {
+	algo, err := algorithm.NewSlidingWindow(limit, period, nil)
+	if err != nil {
+		return nil, err
 	}
+
+	return &RateLimiter{
+		algo: algo,
+		//logger: logger,
+	}, nil
 }
 
 func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
@@ -32,7 +40,7 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 
 		allowed, err := rl.algo.IsAllowed(r.Context(), userID)
 		if err != nil {
-			rl.logger.Error("failed to perform check", slog.Any("error", err))
+			//rl.logger.Error("failed to perform check", slog.Any("error", err))
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
