@@ -15,7 +15,7 @@ type RateLimiter struct {
 	logger *slog.Logger
 }
 
-func New(algo Algorithm, logger *slog.Logger) *RateLimiter {
+func NewRateLimiter(algo Algorithm, logger *slog.Logger) *RateLimiter {
 	return &RateLimiter{
 		algo:   algo,
 		logger: logger,
